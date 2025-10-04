@@ -9,24 +9,30 @@ export default function PL() {
   const [feedback, setFeedback] = useState({});
   const [msg, setMsg] = useState("");
 
-  const API_BASE = "http://localhost:5000/api";
+  // Base API URL - will use environment variable in production
+  const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
   // ---------------- FETCH DATA ----------------
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    const headers = {
+      "Authorization": `Bearer ${token}`
+    };
+
     // Load courses
-    fetch(`${API_BASE}/courses`)
+    fetch(`${API_BASE}/api/courses`, { headers })
       .then((res) => res.json())
       .then((data) => setCourses(Array.isArray(data) ? data : []))
       .catch((err) => setMsg("❌ Failed to load courses: " + err.message));
 
     // Load reports
-    fetch(`${API_BASE}/reports`)
+    fetch(`${API_BASE}/api/reports`, { headers })
       .then((res) => res.json())
       .then((data) => setReports(Array.isArray(data) ? data : []))
       .catch((err) => setMsg("❌ Failed to load reports: " + err.message));
 
     // Load lecturers
-    fetch(`${API_BASE}/users?role=lecturer`)
+    fetch(`${API_BASE}/api/users?role=lecturer`, { headers })
       .then((res) => res.json())
       .then((data) => setLecturers(Array.isArray(data) ? data : []))
       .catch((err) => setMsg("❌ Failed to load lecturers: " + err.message));
@@ -45,9 +51,13 @@ export default function PL() {
       return setMsg("❌ Name and code are required");
     }
     try {
-      const res = await fetch(`${API_BASE}/courses`, {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE}/api/courses`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify(form),
       });
       if (!res.ok) throw new Error("Failed to add course");
@@ -65,9 +75,13 @@ export default function PL() {
       return setMsg("❌ Name and code are required");
     }
     try {
-      const res = await fetch(`${API_BASE}/courses/${courseId}`, {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE}/api/courses/${courseId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify(editingCourse),
       });
       if (!res.ok) throw new Error("Failed to update course");
@@ -83,6 +97,25 @@ export default function PL() {
     }
   };
 
+  const deleteCourse = async (courseId) => {
+    if (window.confirm("Are you sure you want to delete this course?")) {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${API_BASE}/api/courses/${courseId}`, {
+          method: "DELETE",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          },
+        });
+        if (!res.ok) throw new Error("Failed to delete course");
+        setCourses(courses.filter((c) => c.id !== courseId));
+        setMsg("✅ Course deleted");
+      } catch (err) {
+        setMsg("❌ " + err.message);
+      }
+    }
+  };
+
   // ---------------- FEEDBACK ----------------
   const submitFeedback = async (reportId) => {
     if (!feedback[reportId] || !feedback[reportId].trim()) {
@@ -91,19 +124,20 @@ export default function PL() {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/feedback`, {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE}/api/reports/${reportId}/pl-feedback`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({ 
-          reportId: reportId,
-          feedback: feedback[reportId],
-          topic: "", // You can add topic input if needed
-          studentId: null // PL feedback doesn't need student ID
+          feedback: feedback[reportId]
         }),
       });
       
       if (res.ok) {
-        setMsg("✅ Feedback saved successfully!");
+        setMsg("✅ PL Feedback saved successfully!");
         // Clear the feedback input
         setFeedback({
           ...feedback,
@@ -248,10 +282,16 @@ export default function PL() {
                           ?.username || "Unassigned"}
                       </p>
                       <button
-                        className="btn btn-outline-primary btn-sm"
+                        className="btn btn-outline-primary btn-sm me-2"
                         onClick={() => setEditingCourse(c)}
                       >
                         Edit
+                      </button>
+                      <button
+                        className="btn btn-outline-danger btn-sm"
+                        onClick={() => deleteCourse(c.id)}
+                      >
+                        Delete
                       </button>
                     </>
                   )}

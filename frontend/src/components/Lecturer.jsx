@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 
+// Base API URL - will use environment variable in production
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
 export default function Lecturer() {
   const [form, setForm] = useState({
     faculty: "",
@@ -23,11 +26,26 @@ export default function Lecturer() {
   // Load reports
   const fetchReports = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/reports");
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE}/api/reports`, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
       const data = await res.json();
-      if (Array.isArray(data)) setReports(data);
+      if (Array.isArray(data)) {
+        setReports(data);
+      } else {
+        console.error("Expected array but got:", data);
+        setReports([]);
+      }
     } catch (err) {
-      console.error(err);
+      console.error("Fetch reports error:", err);
       setMsg("❌ Failed to load reports");
     }
   };
@@ -44,11 +62,16 @@ export default function Lecturer() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:5000/api/reports", {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE}/api/reports`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify(form),
       });
+      
       if (res.ok) {
         setMsg("✅ Report submitted successfully");
         setForm({
@@ -69,23 +92,24 @@ export default function Lecturer() {
         });
         fetchReports(); // reload reports
       } else {
-        setMsg("❌ Submit failed");
+        const errorData = await res.json();
+        setMsg(`❌ Submit failed: ${errorData.error || "Unknown error"}`);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Submit error:", err);
       setMsg("❌ Error submitting report");
     }
   };
 
   return (
     <div>
-      <h2 className="mb-4"> Lecturer Dashboard</h2>
+      <h2 className="mb-4">Lecturer Dashboard</h2>
       {msg && <div className="alert alert-info">{msg}</div>}
 
       {/* Report Form */}
       <div className="card shadow-sm mb-4">
         <div className="card-header bg-primary text-white">
-          <h5 className="mb-0"> Submit New Report</h5>
+          <h5 className="mb-0">Submit New Report</h5>
         </div>
         <div className="card-body">
           <form onSubmit={handleSubmit} className="row g-3">
@@ -232,14 +256,16 @@ export default function Lecturer() {
               ></textarea>
             </div>
             <div className="col-12 text-end">
-              <button className="btn btn-primary">Submit Report</button>
+              <button type="submit" className="btn btn-primary">
+                Submit Report
+              </button>
             </div>
           </form>
         </div>
       </div>
 
       {/* Submitted Reports */}
-      <h3 className="mb-3"> Submitted Reports</h3>
+      <h3 className="mb-3">Submitted Reports</h3>
       {reports.length === 0 ? (
         <p>No reports submitted yet.</p>
       ) : (

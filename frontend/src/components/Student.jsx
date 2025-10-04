@@ -5,11 +5,24 @@ export default function Student() {
   const [ratings, setRatings] = useState([]);
   const [feedbacks, setFeedbacks] = useState({});
   const [msg, setMsg] = useState("");
-  const studentId = 1; // TODO: replace with logged-in user later
+  
+  // Base API URL - will use environment variable in production
+  const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
+  // Get student ID from logged-in user
+  const getStudentId = () => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    return user ? user.id : 1; // Fallback to 1 if no user found
+  };
 
   // Load reports and ratings
   useEffect(() => {
-    fetch("http://localhost:5000/api/reports")
+    const token = localStorage.getItem("token");
+    const headers = {
+      "Authorization": `Bearer ${token}`
+    };
+
+    fetch(`${API_BASE}/api/reports`, { headers })
       .then((res) => res.json())
       .then((data) => setReports(Array.isArray(data) ? data : []))
       .catch((err) => {
@@ -17,7 +30,7 @@ export default function Student() {
         setMsg("❌ Failed to load reports");
       });
 
-    fetch("http://localhost:5000/api/ratings")
+    fetch(`${API_BASE}/api/ratings`, { headers })
       .then((res) => res.json())
       .then((data) => setRatings(Array.isArray(data) ? data : []))
       .catch((err) => console.error("Ratings load error", err));
@@ -26,17 +39,24 @@ export default function Student() {
   // Submit rating
   const submitRating = async (reportId, rating, feedback) => {
     try {
-      const res = await fetch("http://localhost:5000/api/ratings", {
+      const token = localStorage.getItem("token");
+      const studentId = getStudentId();
+      
+      const res = await fetch(`${API_BASE}/api/ratings`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({ reportId, rating, feedback, studentId }),
       });
+      
       if (res.ok) {
         setMsg("✅ Rating submitted successfully!");
         // reload ratings
-        const newRatings = await fetch("http://localhost:5000/api/ratings").then(
-          (res) => res.json()
-        );
+        const newRatings = await fetch(`${API_BASE}/api/ratings`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        }).then((res) => res.json());
         setRatings(newRatings);
       } else {
         const errMsg = await res.json();
@@ -55,9 +75,15 @@ export default function Student() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/feedback", {
+      const token = localStorage.getItem("token");
+      const studentId = getStudentId();
+      
+      const res = await fetch(`${API_BASE}/api/feedback`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({ 
           reportId, 
           feedback: feedbackText, 
@@ -83,8 +109,10 @@ export default function Student() {
   };
 
   // Find existing rating for a report
-  const getMyRating = (reportId) =>
-    ratings.find((r) => r.report_id === reportId && r.student_id === studentId);
+  const getMyRating = (reportId) => {
+    const studentId = getStudentId();
+    return ratings.find((r) => r.report_id === reportId && r.student_id === studentId);
+  };
 
   return (
     <div>

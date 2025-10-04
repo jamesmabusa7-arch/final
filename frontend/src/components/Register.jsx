@@ -4,6 +4,9 @@ export default function Register() {
   const [form, setForm] = useState({ username: "", password: "", role: "student" });
   const [msg, setMsg] = useState("");
 
+  // Base API URL - will use environment variable in production
+  const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -13,7 +16,7 @@ export default function Register() {
     setMsg("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/register", {
+      const res = await fetch(`${API_BASE}/api/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -29,17 +32,17 @@ export default function Register() {
       setForm({ username: "", password: "", role: "student" });
     } catch (err) {
       console.error(err);
-      setMsg("❌ Server error");
+      setMsg("❌ Server error - cannot connect to backend");
     }
   };
 
   return (
     <div>
       <h2>Register</h2>
-      {msg && <p>{msg}</p>}
+      {msg && <div className={`alert ${msg.includes('✅') ? 'alert-success' : 'alert-danger'}`}>{msg}</div>}
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
-          <label>Username</label>
+          <label className="form-label">Username</label>
           <input
             type="text"
             name="username"
@@ -50,7 +53,7 @@ export default function Register() {
           />
         </div>
         <div className="mb-3">
-          <label>Password</label>
+          <label className="form-label">Password</label>
           <input
             type="password"
             name="password"
@@ -61,7 +64,7 @@ export default function Register() {
           />
         </div>
         <div className="mb-3">
-          <label>Role</label>
+          <label className="form-label">Role</label>
           <select
             name="role"
             value={form.role}
