@@ -2,6 +2,7 @@
   "name": "luct-reporting-frontend",
   "version": "1.0.0",
   "private": true,
+  "homepage": "https://jamesmabusa7-arch.github.io/final",
   "dependencies": {
     "axios": "^1.12.2",
     "bootstrap": "^5.3.0",
