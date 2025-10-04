@@ -13,6 +13,7 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment: github-pages
     steps:
       # 1. Checkout the repo
       - name: Checkout repository
@@ -54,10 +55,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        with:
-          # optional: you can leave default
-          # page_source: 'build'
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
