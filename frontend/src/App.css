@@ -1,0 +1,99 @@
+/* General App Styles */
+body {
+  background-color: #f8f9fa;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+}
+
+h1, h2, h3, h5 {
+  font-weight: 600;
+}
+
+.container {
+  max-width: 1200px;
+}
+
+/* Navbar / Links */
+nav a {
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+nav a:hover {
+  transform: scale(1.05);
+}
+
+/* Cards */
+.card {
+  border: none;
+  border-radius: 12px;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.card-title {
+  color: #0d6efd; /* Bootstrap primary */
+}
+
+.card-footer {
+  background: #f1f1f1;
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+}
+
+/* Alerts */
+.alert {
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+/* Forms */
+.form-control, .form-select, textarea {
+  border-radius: 8px;
+  box-shadow: none !important;
+  border: 1px solid #ddd;
+}
+
+.form-control:focus, .form-select:focus, textarea:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.25) !important;
+}
+
+button.btn {
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+/* Progress Bar */
+.progress {
+  height: 18px;
+  border-radius: 8px;
+}
+
+.progress-bar {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Dashboard Headings */
+.dashboard-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dashboard-title::before {
+  content: "📊";
+  font-size: 1.5rem;
+}
+
+/* Student specific */
+.alert-success {
+  background-color: #d1e7dd;
+  color: #0f5132;
+  border: none;
+}
